@@ -1,0 +1,35 @@
+- per impostare gli hook devo prima caricare il mio DEX in memoria
+
+- IL PROBLEMA E' CHE ORA NON FUNZIONA L HOOK NATIVO SU EPOLL_WAIT, QUINDI STO USANDO UN HOOK SULLA FUNZIONE DI INVOKE E
+QUESTA SCATTA SOLO DA DENTRO UN' APP
+
+
+
+cosa devo preparare:
+
+- quando carico la lib questa (definendo un contructor) imposta un hook sulla funzione nativa epoll_wait
+- quando l'hook scatta leggo il file di conf, preparo l'ambiente e carico il DEX
+
+*. directory dei log
+*. caricamento del DEX in memoria
+
+posso caricare la hooking lib in 3 modi:
+
+1. diretto dentro zygote
+2. quando zygote lancia la target app
+3. diretto dentro un'app
+
+
+algorithm:
+
+1. quando scatta epoll_wait controllo chi sono
+    - che sia zygote o app faccio la stessa cosa:
+        leggo la conf, creo la mia directory temporanea, carico il DEX ed imposto gli hook.
+
+    - imposto SEMPRE un hook su Application's onCreate:
+        quando scatta posso essere in una di questi scenari:
+        se sto runnando come zygote:
+            allora devo ricreare l'ambiente e fixare i permessi dei file
+
+        se sto runnando come app:
+            ok
