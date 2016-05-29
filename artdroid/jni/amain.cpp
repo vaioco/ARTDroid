@@ -26,9 +26,8 @@ namespace artdroid {
             return -1;
         }
         container->print();
-        //set starting native hooks
-        setNativeHooks(*_config);
-        //MyDexLoader::set_dexloader(env, *Config::dexfile);
+        //set native hook on MethodInvoke (workaround, epoll_wait fails)
+        setNativeHook(*_config);
 
     }
     /*

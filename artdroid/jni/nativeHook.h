@@ -29,7 +29,7 @@ namespace artdroid {
     static struct hook_t opendexh;
 
     void* my_invoke_method(void* soa, jobject javaMethod, jobject javaReceiver, jobject javaArgs, unsigned char flag);
-    void setNativeHooks(Config& c);
+    void setNativeHook(Config& c);
 }
 
 

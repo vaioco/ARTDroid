@@ -70,7 +70,7 @@ namespace artdroid{
      * setting native hook via ADBI
      * previously target was epoll_wait() in libc
      */
-    void setNativeHooks(Config& c) {
+    void setNativeHook(Config& c) {
     ALOG("%s, apiversion = %d \n", __PRETTY_FUNCTION__, c.apiversion);
     if(c.apiversion <= 19 ){
         if(hook(&invokeh, getpid(), "libart.",
