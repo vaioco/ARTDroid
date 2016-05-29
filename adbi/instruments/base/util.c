@@ -250,7 +250,7 @@ static symtab_t load_symtab(char *filename)
 
 static int load_memmap(pid_t pid, struct mm *mm, int *nmmp)
 {
-	char raw[80000]; // increase this if needed for larger "maps"
+	char raw[150000]; // increase this if needed for larger "maps"
 	char name[MAX_NAME_LEN];
 	char *p;
 	unsigned long start, end;
@@ -258,11 +258,11 @@ static int load_memmap(pid_t pid, struct mm *mm, int *nmmp)
 	int nmm = 0;
 	int fd, rv;
 	int i;
-
+	log("reading pid map: %d \n", pid);
 	sprintf(raw, "/proc/%d/maps", pid);
 	fd = open(raw, O_RDONLY);
 	if (0 > fd) {
-		//printf("Can't open %s for reading\n", raw);
+		log("Can't open %s for reading\n", raw);
 		return -1;
 	}
 
@@ -280,7 +280,7 @@ static int load_memmap(pid_t pid, struct mm *mm, int *nmmp)
 			break;
 		p += rv;
 		if (p-raw >= sizeof(raw)) {
-			//printf("Too many memory mapping\n");
+			log("Too many memory mapping\n");
 			return -1;
 		}
 	}
@@ -356,12 +356,10 @@ static int find_libname(char *libn, char *name, int len, unsigned long *start, s
 	if (i >= nmm)
 		/* not found */
 		return -1;
-
 	*start = m->start;
 	strncpy(name, m->name, len);
 	if (strlen(m->name) >= len)
 		name[len-1] = '\0';
-		
 	mprotect((void*)m->start, m->end - m->start, PROT_READ|PROT_WRITE|PROT_EXEC);
 	return 0;
 }
@@ -372,7 +370,7 @@ static int lookup2(struct symlist *sl, unsigned char type,
 	Elf32_Sym *p;
 	int len;
 	int i;
-
+	int flag = 0;
 	len = strlen(name);
 	for (i = 0, p = sl->sym; i < sl->num; i++, p++) {
 		//log("name: %s %x\n", sl->str+p->st_name, p->st_value)
@@ -380,10 +378,13 @@ static int lookup2(struct symlist *sl, unsigned char type,
 		    && ELF32_ST_TYPE(p->st_info) == type) {
 			//if (p->st_value != 0) {
 			*val = p->st_value;
+			//flag = 1;
+			//XXX
 			return 0;
 			//}
 		}
 	}
+	//if(flag) return 0;
 	return -1;
 }
 
@@ -404,21 +405,21 @@ static int lookup_func_sym(symtab_t s, char *name, unsigned long *val)
 
 int find_name(pid_t pid, char *name, char *libn, unsigned long *addr)
 {
-	struct mm mm[1000];
+	struct mm mm[10000];
 	unsigned long libcaddr;
 	int nmm;
 	char libc[1024];
 	symtab_t s;
 
 	if (0 > load_memmap(pid, mm, &nmm)) {
-		log("cannot read memory map\n")
+		log("cannot read memory map2\n")
 		return -1;
 	}
 	if (0 > find_libname(libn, libc, sizeof(libc), &libcaddr, mm, nmm)) {
 		log("cannot find lib: %s\n", libn)
 		return -1;
 	}
-	//log("lib: >%s<\n", libc)
+	log("lib: >%s<\n", libc)
 	s = load_symtab(libc);
 	if (!s) {
 		log("cannot read symbol table\n");
@@ -434,14 +435,14 @@ int find_name(pid_t pid, char *name, char *libn, unsigned long *addr)
 
 int find_libbase(pid_t pid, char *libn, unsigned long *addr)
 {
-	struct mm mm[1000];
+	struct mm mm[5000];
 	unsigned long libcaddr;
 	int nmm;
 	char libc[1024];
 	symtab_t s;
 
 	if (0 > load_memmap(pid, mm, &nmm)) {
-		log("cannot read memory map\n")
+		log("cannot read memory map1\n")
 		return -1;
 	}
 	if (0 > find_libname(libn, libc, sizeof(libc), &libcaddr, mm, nmm)) {

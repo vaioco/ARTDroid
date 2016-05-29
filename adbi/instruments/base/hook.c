@@ -71,6 +71,72 @@ int hook_direct(struct hook_t *h, unsigned int addr, void *hookf)
 	return 1;
 }
 
+int hook_address(struct hook_t *h, int pid, char *libname, char *funcname,
+                 void *hook_arm, void *hook_thumb, unsigned long int addr)
+{
+    int i = 0;
+    log("hooking:   %s = 0x%lx ", funcname, addr)
+    strncpy(h->name, funcname, sizeof(h->name)-1);
+
+    if (addr % 4 == 0) {
+        log("ARM using 0x%lx\n", (unsigned long) hook_arm)
+        h->thumb = 0;
+        h->patch = (unsigned int) hook_arm;
+        h->orig = addr;
+        h->jump[0] = 0xe59ff000; // LDR pc, [pc, #0]
+        h->jump[1] = h->patch;
+        h->jump[2] = h->patch;
+        for (i = 0; i < 3; i++)
+        {
+            h->store[i] = ((int *) h->orig)[i];
+            log("%0.2x ", h->storet[i])
+        }
+        log("\n");
+        for (i = 0; i < 3; i++)
+        {
+            ((int *) h->orig)[i] = h->jump[i];
+            log("%0.2x ", ((unsigned char *) h->orig)[i])
+        }
+    }
+    else {
+        if ((unsigned long int)hook_thumb % 4 == 0)
+            log("warning hook is not thumb 0x%lx\n", (unsigned long)hook_thumb)
+        h->thumb = 1;
+        log("THUMB using 0x%lx\n", (unsigned long)hook_thumb)
+        h->patch = (unsigned int)hook_thumb;
+        h->orig = addr;
+        h->jumpt[1] = 0xb4;
+        h->jumpt[0] = 0x60; // push {r5,r6}
+        h->jumpt[3] = 0xa5;
+        h->jumpt[2] = 0x03; // add r5, pc, #12
+        h->jumpt[5] = 0x68;
+        h->jumpt[4] = 0x2d; // ldr r5, [r5]
+        h->jumpt[7] = 0xb0;
+        h->jumpt[6] = 0x02; // add sp,sp,#8
+        h->jumpt[9] = 0xb4;
+        h->jumpt[8] = 0x20; // push {r5}
+        h->jumpt[11] = 0xb0;
+        h->jumpt[10] = 0x81; // sub sp,sp,#4
+        h->jumpt[13] = 0xbd;
+        h->jumpt[12] = 0x20; // pop {r5, pc}
+        h->jumpt[15] = 0x46;
+        h->jumpt[14] = 0xaf; // mov pc, r5 ; just to pad to 4 byte boundary
+        memcpy(&h->jumpt[16], (unsigned char*)&h->patch, sizeof(unsigned int));
+        unsigned int orig = addr - 1; // sub 1 to get real address
+        for (i = 0; i < 20; i++) {
+            h->storet[i] = ((unsigned char*)orig)[i];
+            log("%0.2x ", h->storet[i])
+        }
+        log("\n")
+        for (i = 0; i < 20; i++) {
+            ((unsigned char*)orig)[i] = h->jumpt[i];
+            log("%0.2x ", ((unsigned char*)orig)[i])
+        }
+    }
+    hook_cacheflush((unsigned int)h->orig, (unsigned int)h->orig+sizeof(h->jumpt));
+    return 1;
+}
+
 int hook(struct hook_t *h, int pid, char *libname, char *funcname, void *hook_arm, void *hook_thumb)
 {
 	unsigned long int addr;
@@ -80,60 +146,10 @@ int hook(struct hook_t *h, int pid, char *libname, char *funcname, void *hook_ar
 		log("can't find: %s\n", funcname)
 		return 0;
 	}
-	
-	log("hooking:   %s = 0x%lx ", funcname, addr)
-	strncpy(h->name, funcname, sizeof(h->name)-1);
 
-	if (addr % 4 == 0) {
-		log("ARM using 0x%lx\n", (unsigned long)hook_arm)
-		h->thumb = 0;
-		h->patch = (unsigned int)hook_arm;
-		h->orig = addr;
-		h->jump[0] = 0xe59ff000; // LDR pc, [pc, #0]
-		h->jump[1] = h->patch;
-		h->jump[2] = h->patch;
-		for (i = 0; i < 3; i++)
-			h->store[i] = ((int*)h->orig)[i];
-		for (i = 0; i < 3; i++)
-			((int*)h->orig)[i] = h->jump[i];
-	}
-	else {
-		if ((unsigned long int)hook_thumb % 4 == 0)
-			log("warning hook is not thumb 0x%lx\n", (unsigned long)hook_thumb)
-		h->thumb = 1;
-		log("THUMB using 0x%lx\n", (unsigned long)hook_thumb)
-		h->patch = (unsigned int)hook_thumb;
-		h->orig = addr;	
-		h->jumpt[1] = 0xb4;
-		h->jumpt[0] = 0x60; // push {r5,r6}
-		h->jumpt[3] = 0xa5;
-		h->jumpt[2] = 0x03; // add r5, pc, #12
-		h->jumpt[5] = 0x68;
-		h->jumpt[4] = 0x2d; // ldr r5, [r5]
-		h->jumpt[7] = 0xb0;
-		h->jumpt[6] = 0x02; // add sp,sp,#8
-		h->jumpt[9] = 0xb4;
-		h->jumpt[8] = 0x20; // push {r5}
-		h->jumpt[11] = 0xb0;
-		h->jumpt[10] = 0x81; // sub sp,sp,#4
-		h->jumpt[13] = 0xbd;
-		h->jumpt[12] = 0x20; // pop {r5, pc}
-		h->jumpt[15] = 0x46;
-		h->jumpt[14] = 0xaf; // mov pc, r5 ; just to pad to 4 byte boundary
-		memcpy(&h->jumpt[16], (unsigned char*)&h->patch, sizeof(unsigned int));
-		unsigned int orig = addr - 1; // sub 1 to get real address
-		for (i = 0; i < 20; i++) {
-			h->storet[i] = ((unsigned char*)orig)[i];
-			//log("%0.2x ", h->storet[i])
-		}
-		//log("\n")
-		for (i = 0; i < 20; i++) {
-			((unsigned char*)orig)[i] = h->jumpt[i];
-			//log("%0.2x ", ((unsigned char*)orig)[i])
-		}
-	}
-	hook_cacheflush((unsigned int)h->orig, (unsigned int)h->orig+sizeof(h->jumpt));
-	return 1;
+    return hook_address(h,pid,libname,funcname,hook_arm,hook_thumb,addr);
+	
+
 }
 
 void hook_precall(struct hook_t *h)

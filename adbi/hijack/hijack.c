@@ -257,7 +257,7 @@ load_symtab(char *filename)
 static int
 load_memmap(pid_t pid, struct mm *mm, int *nmmp)
 {
-	char raw[80000]; // this depends on the number of libraries an executable uses
+	char raw[160000]; // this depends on the number of libraries an executable uses
 	char name[MAX_NAME_LEN];
 	char *p;
 	unsigned long start, end;
@@ -265,7 +265,7 @@ load_memmap(pid_t pid, struct mm *mm, int *nmmp)
 	int nmm = 0;
 	int fd, rv;
 	int i;
-
+	printf("opening pid map: %d \n", pid);
 	sprintf(raw, "/proc/%d/maps", pid);
 	fd = open(raw, O_RDONLY);
 	if (0 > fd) {
@@ -456,14 +456,14 @@ lookup_func_sym(symtab_t s, char *name, unsigned long *val)
 static int
 find_name(pid_t pid, char *name, unsigned long *addr)
 {
-	struct mm mm[1000];
+	struct mm mm[5000];
 	unsigned long libcaddr;
 	int nmm;
 	char libc[256];
 	symtab_t s;
 
 	if (0 > load_memmap(pid, mm, &nmm)) {
-		printf("cannot read memory map\n");
+		printf("cannot read memory map4\n");
 		return -1;
 	}
 	if (0 > find_libc(libc, sizeof(libc), &libcaddr, mm, nmm)) {
@@ -485,14 +485,14 @@ find_name(pid_t pid, char *name, unsigned long *addr)
 
 static int find_linker(pid_t pid, unsigned long *addr)
 {
-	struct mm mm[1000];
+	struct mm mm[5000];
 	unsigned long libcaddr;
 	int nmm;
 	char libc[256];
 	symtab_t s;
 
 	if (0 > load_memmap(pid, mm, &nmm)) {
-		printf("cannot read memory map\n");
+		printf("cannot read memory map3\n");
 		return -1;
 	}
 	if (0 > find_linker_mem(libc, sizeof(libc), &libcaddr, mm, nmm)) {
