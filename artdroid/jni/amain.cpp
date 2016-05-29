@@ -1,4 +1,4 @@
-#include "artd_main.h"
+#include "amain.h"
 
 namespace artdroid {
 
@@ -31,6 +31,9 @@ namespace artdroid {
         //MyDexLoader::set_dexloader(env, *Config::dexfile);
 
     }
+    /*
+     * logcat logging function
+     */
     void mylog2(char *msg)
     {
         ALOG("%s", msg);

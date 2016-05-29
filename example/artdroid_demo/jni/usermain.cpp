@@ -14,13 +14,3 @@ __attribute__ ((constructor)) void my_init(void) {
     string logfile = "/data/local/tmp/artdroid.log";
     artdroid_main(conf, logfile);
 }
-
-/*
-configT_ptr configuration = artdroid_main("/data/local/tmp/test.json");
-if (configuration == NULL) {
-    //LOGG("ERROR CONFIGURATION INIT!!\n");
-    return;
-}
-*/
-    //arthooklog("%s  ended pid %d \n\n", __PRETTY_FUNCTION__, getpid());
-

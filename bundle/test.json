@@ -1,0 +1,11 @@
+{"config": {
+    "debug": 1,
+    "dex": "/data/local/tmp/dex/target.dex",
+    "hooks": [
+    {
+        "class-name": "android/telephony/TelephonyManager",
+        "method-name": "getDeviceId",
+        "method-sig": "()Ljava/lang/String;",
+        "hook-cls-name": "org/sid/arthookbridge/HookCls"
+    }]
+}}

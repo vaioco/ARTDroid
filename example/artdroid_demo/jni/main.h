@@ -5,7 +5,7 @@
 #ifndef ARTDROID_C_MAIN_H
 #define ARTDROID_C_MAIN_H
 
-#include "artd_main.h"
+#include "amain.h"
 
 
 #endif //ARTDROID_C_MAIN_H

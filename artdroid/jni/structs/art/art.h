@@ -24,7 +24,6 @@
 
 #include <jni.h>
 #include "utils/Logger.h"
-
 #include "conf/AParser.h"
 #include "structs/ArtHook.h"
 
@@ -49,5 +48,4 @@ typedef signed int s4;
 typedef signed long long s8;
 #endif
 
-void hook_5_1(JNIEnv* env, jobject src, jobject dest);
-void test_5_1(JNIEnv* env, artdroid::ArtHook& );
+bool test_5_1(JNIEnv* env, artdroid::ArtHook& );

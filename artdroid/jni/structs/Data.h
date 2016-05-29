@@ -17,6 +17,10 @@ namespace artdroid {
 
     class DataStruct {
     public:
+        /*
+         * contains mapping of target-hash -> ArtHook
+         *
+         */
         map <string, ArtHook> dict;
 
         void addElement(string key, ArtHook* value);
@@ -32,6 +36,8 @@ namespace artdroid {
         void setContainerInstance(DataStruct*);
 
         static DataStruct* getContainerInstance();
+
+        ArtHook* search(const string);
 
         const static DataStruct* _inst;
     };

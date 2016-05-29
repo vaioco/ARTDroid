@@ -69,6 +69,7 @@ namespace artdroid{
         this->log_fname = fname;
         this->readConfig();
         this->print();
+        Config::setConfigInstance(this);
     }
 
     string* Config::dexfile = new string();
@@ -143,7 +144,6 @@ namespace artdroid{
             fclose(fp);
             return false;
         }
-        //process_value(node,0);
         start_parsing(node, d);
         json_value_free(node);
         free(file_contents);

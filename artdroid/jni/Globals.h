@@ -9,6 +9,7 @@
 
 
 namespace artdroid{
-    static JNIEnv* jnienv;
+    //TODO: multi dexloader support
+    static jobject gDexLoader;
 }
 #endif //ARTDROID_C_GLOBALS_H

@@ -41,11 +41,12 @@
 #include <string>
 #include "art.h"
 
-static int apilevel;
+static int apilevel = -1;
 
-static void getMethodFromMem(artdroid::ArtHook& t, JNIEnv* env);
+static void HookInMem(artdroid::ArtHook& t, JNIEnv* env);
 
 extern jboolean __attribute__ ((visibility ("hidden"))) art_setup(JNIEnv* env) {
+    if(apilevel != -1) return JNI_TRUE;
     ALOG("%s called \n", __PRETTY_FUNCTION__);
     artdroid::Config* c = artdroid::Config::getConfigInstance();
 	apilevel = c->apiversion;
@@ -55,22 +56,18 @@ extern jboolean __attribute__ ((visibility ("hidden"))) art_setup(JNIEnv* env) {
 extern void __attribute__ ((visibility ("hidden"))) art_HookMethod(
 		JNIEnv* env, artdroid::ArtHook& target) {
 	if (apilevel > 22) {
+		//TODO: add marshmallow
 		;//replace_6_0(env, src, dest);
 	} else if (apilevel > 21) {
 		ALOG("%s hooking on %s : %s \n", __PRETTY_FUNCTION__, target.mname.c_str(), target.msig.c_str());
-        getMethodFromMem(target, env);
+        HookInMem(target, env);
 	} else {
 		;//replace_5_0(env, src, dest);
 	}
 }
 
-static void getMethodFromMem(artdroid::ArtHook& t, JNIEnv* env){
+static void HookInMem(artdroid::ArtHook& t, JNIEnv* env){
     ALOG("%s searching class: %s\n", __PRETTY_FUNCTION__, t.cname.c_str());
-    jclass c = env->FindClass(t.cname.c_str());
-    ALOG("%s found class : %x \n ", __PRETTY_FUNCTION__, c);
-    void* mid = env->GetMethodID(c, t.mname.c_str(), t.msig.c_str() );
-    ALOG("%s found mid : %x \n ", __PRETTY_FUNCTION__, mid);
-    //jobject obj =  env->NewGlobalRef(mid);
     test_5_1(env, t);
     }
 

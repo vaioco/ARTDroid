@@ -38,6 +38,7 @@ public:
 
 	uint32_t monitor_;
 };
+
 class Class: public Object {
 public:
 	// Interface method table size. Increasing this value reduces the chance of two interface methods
@@ -214,6 +215,16 @@ public:
 	const uint16_t* vmap_table_;
 
 	static void* java_lang_reflect_ArtMethod_;
+};
+
+// C++ mirror of java.lang.StackTraceElement
+class StackTraceElement : public Object {
+private:
+	// Field order required by test "ValidateFieldOrderOfJavaCppUnionClasses".
+	void* declaring_class_;
+	void* file_name_;
+	void* method_name_;
+	int32_t line_number_;
 };
 
 }

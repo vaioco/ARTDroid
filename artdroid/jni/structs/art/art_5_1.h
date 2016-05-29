@@ -186,6 +186,16 @@ public:
 	static void* java_lang_reflect_ArtMethod_;
 };
 
+// C++ mirror of java.lang.StackTraceElement
+	class StackTraceElement : public Object {
+	public:
+		// Field order required by test "ValidateFieldOrderOfJavaCppUnionClasses".
+		void* declaring_class_;
+		void* file_name_;
+		void* method_name_;
+		int32_t line_number_;
+	};
+
 }
 
 }
